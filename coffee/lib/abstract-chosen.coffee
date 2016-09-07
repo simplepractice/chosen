@@ -178,10 +178,10 @@ class AbstractChosen
         option.search_text = if option.group then option.label else option.html
 
         unless option.group and not @group_search
-          option.search_match = this.search_string_match(option.search_text, regex)
+          option.search_match = this.search_string_match(option.search_text, regex, escapedSearchText)
           results += 1 if option.search_match and not option.group
 
-          if option.search_match
+          if option.search_match && option.search_match != 1
             if searchText.length
               startpos = option.search_text.search zregex
               text = option.search_text.substr(0, startpos + searchText.length) + '</em>' + option.search_text.substr(startpos + searchText.length)
@@ -206,7 +206,7 @@ class AbstractChosen
     regex_flag = if @case_sensitive_search then "" else "i"
     new RegExp(regex_anchor + escaped_search_string, regex_flag)
 
-  search_string_match: (search_string, regex) ->
+  search_string_match: (search_string, regex, escaped_search_text) ->
     if regex.test search_string
       return true
     else if @enable_split_word_search and (search_string.indexOf(" ") >= 0 or search_string.indexOf("[") == 0)
@@ -216,6 +216,14 @@ class AbstractChosen
         for part in parts
           if regex.test part
             return true
+
+      parts = escaped_search_text.split(" ")
+      if parts.length
+        for part in parts
+          if search_string.indexOf(part) == -1
+            return false
+
+      return 1
 
   choices_count: ->
     return @selected_option_count if @selected_option_count?
@@ -298,4 +306,3 @@ class AbstractChosen
   @default_multiple_text: "Select Some Options"
   @default_single_text: "Select an Option"
   @default_no_result_text: "No results match"
-
